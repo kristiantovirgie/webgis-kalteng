@@ -1,3 +1,4 @@
+console.log("SCRIPT SUDAH JALAN");
 // ============================
 //   INISIALISASI PETA
 // ============================
