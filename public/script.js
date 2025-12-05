@@ -37,14 +37,23 @@ Promise.all([
     //   HITUNG DENSITAS
     // ============================
     geojson.features.forEach(f => {
-        const name = f.properties.NAME_2.trim().toLowerCase();
-        if (dataMap[name]) {
-            f.properties.population = dataMap[name].population;
+        // SATUKAN CSV KE GEOJSON
+features.forEach(f => {
+    const geoName = f.properties.WADMKC
+        .replace("KABUPATEN ", "Kab. ")
+        .replace("KAB. ", "Kab. ")
+        .replace("KOTA ", "Kota ")
+        .trim();
 
-            const areaKm = turf.area(f) / 1_000_000; // area in km²
-            f.properties.density = Math.round(f.properties.population / areaKm);
-        }
-    });
+    const csvRow = dataCsv.find(row => row.name.trim() === geoName);
+
+    if (csvRow) {
+        f.properties.population = parseInt(csvRow.population.replace(/,/g, ""));
+    } else {
+        f.properties.population = 0;
+    }
+});
+
 
     // ============================
     //   WARNA CHOROPLETH
