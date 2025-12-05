@@ -1,63 +1,42 @@
-var map = L.map("map").setView([-1.5, 113.5], 6);
+var map = L.map("map").setView([-1.8, 113.5], 7);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18,
 }).addTo(map);
 
-var populasi = {
-    "Kota Palangka Raya": 303500,
-    "Kabupaten Kotawaringin Barat": 321200,
-    "Kabupaten Kotawaringin Timur": 428900,
-    "Kabupaten Kapuas": 410400,
-    "Kabupaten Barito Selatan": 154800,
-    "Kabupaten Barito Utara": 163100,
-    "Kabupaten Sukamara": 66000,
-    "Kabupaten Lamandau": 89000,
-    "Kabupaten Seruyan": 140000,
-    "Kabupaten Katingan": 165500,
-    "Kabupaten Pulang Pisau": 126700,
-    "Kabupaten Gunung Mas": 141500,
-    "Kabupaten Barito Timur": 113600,
-    "Kabupaten Murung Raya": 127000
+const coords = {
+    "Kab. Kotawaringin Barat": [-2.679, 111.616],
+    "Kab. Kotawaringin Timur": [-2.538, 112.956],
+    "Kab. Kapuas": [-3.097, 114.390],
+    "Kab. Barito Selatan": [-1.875, 114.810],
+    "Kab. Barito Utara": [-0.957, 115.125],
+    "Kab. Sukamara": [-2.626, 111.222],
+    "Kab. Lamandau": [-2.235, 111.526],
+    "Kab. Seruyan": [-3.000, 112.500],
+    "Kab. Katingan": [-1.432, 113.400],
+    "Kab. Pulang Pisau": [-2.684, 114.038],
+    "Kab. Gunung Mas": [-1.141, 113.785],
+    "Kab. Barito Timur": [-2.020, 115.169],
+    "Kab. Murung Raya": [-0.720, 114.000],
+    "Kota Palangka Raya": [-2.210, 113.920]
 };
 
-var geojsonURL = "https://raw.githubusercontent.com/tegarw010/geojson-indonesia/main/kalimantan_tengah.geojson";
+fetch("data/populasi_kalteng2.csv")
+    .then(res => res.text())
+    .then(csv => {
+        let rows = csv.split("\n").slice(1);
 
-function getColor(pop) {
-    return pop > 400000 ? "#800026" :
-           pop > 250000 ? "#BD0026" :
-           pop > 150000 ? "#E31A1C" :
-           pop > 80000  ? "#FC4E2A" :
-           "#FD8D3C";
-}
+        rows.forEach(row => {
+            if (!row.trim()) return;
 
-function style(feature) {
-    var nama = feature.properties.NAME_2;
-    var pop = populasi[nama] || 0;
+            let cols = row.split(",");
+            let name = cols[0].trim();
+            let population = cols[1].trim();
 
-    return {
-        fillColor: getColor(pop),
-        weight: 1,
-        opacity: 1,
-        color: "white",
-        dashArray: "3",
-        fillOpacity: 0.7
-    };
-}
-
-fetch(geojsonURL)
-    .then(response => response.json())
-    .then(data => {
-        L.geoJson(data, {
-            style: style,
-            onEachFeature: function (feature, layer) {
-                var nama = feature.properties.NAME_2;
-                var pop = populasi[nama] || "Data tidak tersedia";
-
-                layer.bindPopup(
-                    "<b>" + nama + "</b><br>" +
-                    "Populasi: " + pop.toLocaleString()
-                );
+            if (coords[name]) {
+                L.marker(coords[name])
+                    .addTo(map)
+                    .bindPopup(`<b>${name}</b><br>Populasi: ${population}`);
             }
-        }).addTo(map);
+        });
     });
