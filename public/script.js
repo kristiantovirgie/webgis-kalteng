@@ -9,8 +9,11 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 // ====== BACA GEOJSON + CSV BERSAMA-SAMA ======
 Promise.all([
-  fetch("data/kalteng_kabkota.geojson").then((res) => res.json()),
-  fetch("data/populasi_kalteng2.csv").then((res) => res.text()),
+  Promise.all([
+  fetch("kalimantan_tengah_clean.geojson").then(res => res.json()),
+  fetch("populasi_kalteng2.csv").then(res => res.text())
+])
+
 ]).then(([geojson, csvText]) => {
   // ---- PARSE CSV ----
   const rows = csvText.trim().split("\n");
