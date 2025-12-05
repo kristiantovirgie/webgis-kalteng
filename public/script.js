@@ -14,6 +14,7 @@ Promise.all([
   fetch("populasi_kalteng2.csv").then(res => res.text())
 ])
 
+
 ]).then(([geojson, csvText]) => {
   // ---- PARSE CSV ----
   const rows = csvText.trim().split("\n");
