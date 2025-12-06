@@ -3,19 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peta Populasi Kabupaten/Kota Provinsi Kalimantan Tengah</title>
+    <title>Peta Populasi Kabupaten/Kota Kalimantan Tengah</title>
 
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-    <!-- Style -->
-    <link rel="stylesheet" href="style.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <h2>Peta Populasi Kabupaten/Kota Provinsi Kalimantan Tengah</h2>
 
-    <!-- DIV PETA -->
+    <!-- Tombol Layer -->
+    <div id="layerButtons">
+        <button id="btnPop">Populasi</button>
+        <button id="btnDens">Kepadatan</button>
+    </div>
+
+    <!-- Map -->
     <div id="map"></div>
 
     <!-- Leaflet JS -->
