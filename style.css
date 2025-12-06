@@ -1,4 +1,5 @@
-body {
+html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
@@ -11,6 +12,6 @@ h2 {
 
 #map {
     width: 100%;
-    height: 90vh;   /* INI YANG PENTING */
+    height: 90vh;  /* Paling aman untuk HP dan laptop */
     border: 1px solid #ccc;
 }
