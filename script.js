@@ -1,9 +1,12 @@
+// Inisialisasi peta
 var map = L.map("map").setView([-1.5, 113.5], 6);
 
+// Basemap
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18,
 }).addTo(map);
 
+// Data populasi
 var populasi = {
     "Kota Palangka Raya": 303500,
     "Kabupaten Kotawaringin Barat": 321200,
@@ -21,31 +24,19 @@ var populasi = {
     "Kabupaten Murung Raya": 127000
 };
 
-var geojsonURL = "https://raw.githubusercontent.com/tegarw010/geojson-indonesia/main/kalimantan_tengah.geojson";
-
-// Fungsi untuk menyeragamkan nama
-function normalisasi(nama) {
-    return nama
-        .replace("Kabupaten ", "")
-        .replace("Kota ", "")
-        .trim();
-}
-
+// WARNA CHOROPLETH
 function getColor(pop) {
     return pop > 400000 ? "#800026" :
            pop > 250000 ? "#BD0026" :
            pop > 150000 ? "#E31A1C" :
            pop > 80000  ? "#FC4E2A" :
-           "#FD8D3C";
+                          "#FD8D3C";
 }
 
+// STYLE GEOJSON
 function style(feature) {
-    var namaAsli = feature.properties.NAME_2;
-    var nama = normalisasi(namaAsli);
-
-    var pop = populasi["Kabupaten " + nama] ||
-              populasi["Kota " + nama] ||
-              0;
+    var nama = feature.properties.WADMKK;  // PERBAIKAN KRUSIAL
+    var pop = populasi[nama] || 0;
 
     return {
         fillColor: getColor(pop),
@@ -57,23 +48,24 @@ function style(feature) {
     };
 }
 
+// URL GEOJSON
+var geojsonURL = "https://raw.githubusercontent.com/kristiantovirgie/webgis-kalteng/main/kalimantan_tengah_clean.geojson";
+
+// LOAD GEOJSON
 fetch(geojsonURL)
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
         L.geoJson(data, {
             style: style,
             onEachFeature: function (feature, layer) {
-                var namaAsli = feature.properties.NAME_2;
-                var nama = normalisasi(namaAsli);
-
-                var pop = populasi["Kabupaten " + nama] ||
-                          populasi["Kota " + nama] ||
-                          "Data tidak tersedia";
+                var nama = feature.properties.WADMKK;
+                var pop = populasi[nama] || "Data tidak tersedia";
 
                 layer.bindPopup(
-                    "<b>" + namaAsli + "</b><br>" +
+                    "<b>" + nama + "</b><br>" +
                     "Populasi: " + pop.toLocaleString()
                 );
             }
         }).addTo(map);
-    });
+    })
+    .catch(err => console.error(err));
