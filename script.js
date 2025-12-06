@@ -1,19 +1,13 @@
-// =======================
-// 1. INISIALISASI PETA
-// =======================
-var map = L.map("map").setView([-1.8, 113.5], 7);
+// Inisialisasi peta
+var map = L.map("map").setView([-1.5, 113.5], 6);
 
-// BASEMAP
+// Basemap
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap contributors"
+    maxZoom: 18
 }).addTo(map);
 
-
-// ================================
-// 2. DATA POPULASI (MANUAL)
-// ================================
-var dataPopulasi = {
+// Data Populasi
+var populasi = {
     "Kota Palangka Raya": 303500,
     "Kabupaten Kotawaringin Barat": 321200,
     "Kabupaten Kotawaringin Timur": 428900,
@@ -30,179 +24,141 @@ var dataPopulasi = {
     "Kabupaten Murung Raya": 127000
 };
 
+// Data luas wilayah untuk kepadatan (km2)
+var luas = {
+    "Kota Palangka Raya": 2667,
+    "Kabupaten Kotawaringin Barat": 10760,
+    "Kabupaten Kotawaringin Timur": 16796,
+    "Kabupaten Kapuas": 14999,
+    "Kabupaten Barito Selatan": 8850,
+    "Kabupaten Barito Utara": 8300,
+    "Kabupaten Sukamara": 3907,
+    "Kabupaten Lamandau": 6188,
+    "Kabupaten Seruyan": 16752,
+    "Kabupaten Katingan": 20172,
+    "Kabupaten Pulang Pisau": 8997,
+    "Kabupaten Gunung Mas": 10805,
+    "Kabupaten Barito Timur": 3834,
+    "Kabupaten Murung Raya": 23350
+};
 
-// ================================
-// 3. FUNGSI WARNA POPULASI
-// ================================
+// Warna Populasi
 function getColorPop(x) {
     return x > 400000 ? "#800026" :
            x > 250000 ? "#BD0026" :
            x > 150000 ? "#E31A1C" :
            x > 80000  ? "#FC4E2A" :
-                        "#FEB24C";
+                         "#FD8D3C";
 }
 
-// Style untuk layer populasi
+// Warna Kepadatan
+function getColorDens(x) {
+    return x > 60 ? "#084594" :
+           x > 40 ? "#2171B5" :
+           x > 20 ? "#4292C6" :
+           x > 10 ? "#6BAED6" :
+                    "#9ECAE1";
+}
+
+// Style layer Populasi
 function stylePop(feature) {
-    let nama = feature.properties.WADMKK;
-    let pop = dataPopulasi[nama] || 0;
+    var nama = feature.properties.NAME_2;
+    var pop = populasi[nama] || 0;
 
     return {
         fillColor: getColorPop(pop),
-        color: "#ffffff",
         weight: 1,
-        fillOpacity: 0.7
+        opacity: 1,
+        color: "white",
+        fillOpacity: 0.8
     };
 }
 
+// Style layer Kepadatan
+function styleDens(feature) {
+    var nama = feature.properties.NAME_2;
+    var dens = (populasi[nama] / luas[nama]) || 0;
 
-// ================================
-// 4. HITUNG KEPADATAN (MANUAL ESTIMASI)
-// ================================
-var dataLuas = {
-    "Kota Palangka Raya": 2678,
-    "Kabupaten Kotawaringin Barat": 10760,
-    "Kabupaten Kotawaringin Timur": 16796,
-    "Kabupaten Kapuas": 14999,
-    "Kabupaten Barito Selatan": 8670,
-    "Kabupaten Barito Utara": 8300,
-    "Kabupaten Sukamara": 3907,
-    "Kabupaten Lamandau": 6474,
-    "Kabupaten Seruyan": 13240,
-    "Kabupaten Katingan": 20378,
-    "Kabupaten Pulang Pisau": 8997,
-    "Kabupaten Gunung Mas": 10933,
-    "Kabupaten Barito Timur": 3824,
-    "Kabupaten Murung Raya": 23400
-};
-
-let dataKepadatan = {};
-Object.keys(dataPopulasi).forEach(k => {
-    dataKepadatan[k] = Math.round(dataPopulasi[k] / dataLuas[k]);
-});
-
-function getColorDensity(x) {
-    return x > 200 ? "#084081" :
-           x > 120 ? "#0868ac" :
-           x > 80  ? "#2b8cbe" :
-           x > 40  ? "#4eb3d3" :
-                     "#7bccc4";
-}
-
-function styleDensity(feature) {
-    let nama = feature.properties.WADMKK;
-    let dens = dataKepadatan[nama] || 0;
     return {
-        fillColor: getColorDensity(dens),
-        color: "#ffffff",
+        fillColor: getColorDens(dens),
         weight: 1,
-        fillOpacity: 0.7
+        opacity: 1,
+        color: "white",
+        fillOpacity: 0.8
     };
 }
 
+var geojsonURL = "kalimantan_tengah_clean.geojson";
 
-// ================================
-// 5. LOAD GEOJSON (URL VALID)
-// ================================
-var geojsonURL =
-"https://raw.githubusercontent.com/tegarw010/geojson-indonesia/main/kalimantan_tengah/kalimantan_tengah.geojson";
-
-var layerPopulasi, layerKepadatan;
+var layerPop, layerDens;
 
 fetch(geojsonURL)
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
-
-        // LAYER POPULASI
-        layerPopulasi = L.geoJson(data, {
+        layerPop = L.geoJson(data, {
             style: stylePop,
             onEachFeature: function (feature, layer) {
-                let nama = feature.properties.WADMKK;
-                let pop = dataPopulasi[nama] || 0;
-
-                layer.bindPopup(`
-                    <b>${nama}</b><br>
-                    Populasi: ${pop.toLocaleString()}
-                `);
+                var nama = feature.properties.NAME_2;
+                var pop = populasi[nama]?.toLocaleString() || "-";
+                layer.bindPopup(`<b>${nama}</b><br>Populasi: ${pop}`);
             }
         });
 
-        // LAYER KEPADATAN
-        layerKepadatan = L.geoJson(data, {
-            style: styleDensity,
+        layerDens = L.geoJson(data, {
+            style: styleDens,
             onEachFeature: function (feature, layer) {
-                let nama = feature.properties.WADMKK;
-                let dens = dataKepadatan[nama] || 0;
-
-                layer.bindPopup(`
-                    <b>${nama}</b><br>
-                    Kepadatan: ${dens} jiwa/km²
-                `);
+                var nama = feature.properties.NAME_2;
+                var dens = (populasi[nama] / luas[nama]).toFixed(1);
+                layer.bindPopup(`<b>${nama}</b><br>Kepadatan: ${dens} jiwa/km²`);
             }
         });
 
-        layerPopulasi.addTo(map);
+        layerPop.addTo(map);
+        addLegendPop();
     });
 
-
-// ================================
-// 6. LAYER CONTROL
-// ================================
-var overlays = {
-    "Choropleth Populasi": () => {
-        map.removeLayer(layerKepadatan);
-        layerPopulasi.addTo(map);
-    },
-    "Choropleth Kepadatan": () => {
-        map.removeLayer(layerPopulasi);
-        layerKepadatan.addTo(map);
-    }
+// Tombol Layer
+document.getElementById("btnPop").onclick = function () {
+    map.removeLayer(layerDens);
+    layerPop.addTo(map);
+    addLegendPop();
 };
 
-// Tombol kontrol sederhana
-var controlDiv = L.control({ position: "topright" });
-controlDiv.onAdd = function () {
-    var div = L.DomUtil.create("div", "info legend");
-    div.innerHTML = `
-        <button id="btnPop" style="margin:5px;padding:5px;">Populasi</button>
-        <button id="btnDens" style="margin:5px;padding:5px;">Kepadatan</button>
-    `;
-    return div;
+document.getElementById("btnDens").onclick = function () {
+    map.removeLayer(layerPop);
+    layerDens.addTo(map);
+    addLegendDens();
 };
-controlDiv.addTo(map);
 
-
-// Event tombol
-document.addEventListener("click", function (e) {
-    if (e.target.id === "btnPop") {
-        overlays["Choropleth Populasi"]();
-    }
-    if (e.target.id === "btnDens") {
-        overlays["Choropleth Kepadatan"]();
-    }
-});
-
-
-// ================================
-// 7. LEGEND POPULASI
-// ================================
+// LEGEND
 var legend = L.control({ position: "bottomright" });
 
-legend.onAdd = function () {
-    var div = L.DomUtil.create("div", "info legend"),
-        grades = [50000, 80000, 150000, 250000, 400000],
-        labels = [];
+function addLegendPop() {
+    legend.onAdd = function () {
+        var div = L.DomUtil.create("div", "legend");
+        var grades = [50000, 80000, 150000, 250000, 400000];
+        div.innerHTML = "<b>Populasi</b><br>";
+        for (var i = 0; i < grades.length; i++) {
+            div.innerHTML +=
+                `<i style="background:${getColorPop(grades[i] + 1)}"></i> 
+                 ${grades[i].toLocaleString()}+<br>`;
+        }
+        return div;
+    };
+    legend.addTo(map);
+}
 
-    div.innerHTML = "<b>Populasi</b><br>";
-
-    for (var i = 0; i < grades.length; i++) {
-        div.innerHTML +=
-            '<i style="background:' + getColorPop(grades[i] + 1) + '"></i> ' +
-            grades[i].toLocaleString() +
-            (grades[i + 1] ? " – " + grades[i + 1].toLocaleString() + "<br>" : "+");
-    }
-
-    return div;
-};
-
-legend.addTo(map);
+function addLegendDens() {
+    legend.onAdd = function () {
+        var div = L.DomUtil.create("div", "legend");
+        var grades = [10, 20, 40, 60];
+        div.innerHTML = "<b>Kepadatan (jiwa/km²)</b><br>";
+        for (var i = 0; i < grades.length; i++) {
+            div.innerHTML +=
+                `<i style="background:${getColorDens(grades[i] + 1)}"></i> 
+                 ${grades[i]}+<br>`;
+        }
+        return div;
+    };
+    legend.addTo(map);
+}
