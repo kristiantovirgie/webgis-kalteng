@@ -23,6 +23,14 @@ var populasi = {
 
 var geojsonURL = "https://raw.githubusercontent.com/tegarw010/geojson-indonesia/main/kalimantan_tengah.geojson";
 
+// Fungsi untuk menyeragamkan nama
+function normalisasi(nama) {
+    return nama
+        .replace("Kabupaten ", "")
+        .replace("Kota ", "")
+        .trim();
+}
+
 function getColor(pop) {
     return pop > 400000 ? "#800026" :
            pop > 250000 ? "#BD0026" :
@@ -32,8 +40,12 @@ function getColor(pop) {
 }
 
 function style(feature) {
-    var nama = feature.properties.NAME_2;
-    var pop = populasi[nama] || 0;
+    var namaAsli = feature.properties.NAME_2;
+    var nama = normalisasi(namaAsli);
+
+    var pop = populasi["Kabupaten " + nama] ||
+              populasi["Kota " + nama] ||
+              0;
 
     return {
         fillColor: getColor(pop),
@@ -51,11 +63,15 @@ fetch(geojsonURL)
         L.geoJson(data, {
             style: style,
             onEachFeature: function (feature, layer) {
-                var nama = feature.properties.NAME_2;
-                var pop = populasi[nama] || "Data tidak tersedia";
+                var namaAsli = feature.properties.NAME_2;
+                var nama = normalisasi(namaAsli);
+
+                var pop = populasi["Kabupaten " + nama] ||
+                          populasi["Kota " + nama] ||
+                          "Data tidak tersedia";
 
                 layer.bindPopup(
-                    "<b>" + nama + "</b><br>" +
+                    "<b>" + namaAsli + "</b><br>" +
                     "Populasi: " + pop.toLocaleString()
                 );
             }
