@@ -1,3 +1,10 @@
+fetch("kalimantan_tengah_clean.geojson")
+  .then(r => r.json())
+  .then(j => {
+    console.log("DAFTAR NAMA GEOJSON:");
+    j.features.forEach(f => console.log(f.properties));
+  });
+
 // Inisialisasi peta
 var map = L.map("map").setView([-1.5, 113.5], 6);
 
